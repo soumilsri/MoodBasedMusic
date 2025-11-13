@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Music App 🎵</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .mood-selection {
+            margin-bottom: 30px;
+        }
+        
+        .mood-selection h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .mood-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .mood-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .mood-input::placeholder {
+            color: #999;
+        }
+        
+        .search-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .results h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .video-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+        
+        .video-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            background: white;
+        }
+        
+        .video-header {
+            margin-bottom: 15px;
+        }
+        
+        .video-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .video-channel {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+        }
+        
+        .video-embed {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .video-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .video-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .video-feedback h4 {
+            color: #667eea;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .video-feedback-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .video-feedback-btn {
+            padding: 12px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+        
+        .video-feedback-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .video-feedback-btn.liked {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            transform: scale(1.1);
+        }
+        
+        .video-feedback-btn.liked:hover {
+            background: #4caf50;
+            transform: scale(1.15);
+        }
+        
+        .video-feedback-btn.disliked {
+            border-color: #f44336;
+            background: #ffebee;
+            transform: scale(1.1);
+        }
+        
+        .video-feedback-btn.disliked:hover {
+            background: #f44336;
+            transform: scale(1.15);
+        }
+        
+        .video-feedback-btn.neutral-selected {
+            border-color: #9e9e9e;
+            background: #f5f5f5;
+            transform: scale(1.1);
+        }
+        
+        .video-feedback-btn.neutral-selected:hover {
+            background: #9e9e9e;
+            transform: scale(1.15);
+        }
+        
+        .video-feedback-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .feedback-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .feedback-section.show {
+            display: block;
+        }
+        
+        .feedback-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .feedback-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .feedback-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .feedback-btn.like {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+        
+        .feedback-btn.like:hover {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .feedback-btn.dislike {
+            border-color: #f44336;
+            color: #f44336;
+        }
+        
+        .feedback-btn.dislike:hover {
+            background: #f44336;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c62828;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Mood Music App</h1>
+            <p>Discover music that matches your mood</p>
+        </div>
+        
+        <div class="content">
+            <div class="mood-selection">
+                <h2>How are you feeling today?</h2>
+                <p style="color: #666; margin-bottom: 20px;">Describe your mood in your own words (e.g., "feeling energetic after a workout", "melancholic and reflective", "need motivation for studying")</p>
+                <textarea 
+                    id="moodInput" 
+                    class="mood-input" 
+                    placeholder="E.g., feeling happy and energetic, or sad and contemplative, or need focus music for work..."
+                    rows="3"></textarea>
+                <button class="search-btn" id="searchBtn">Search Music</button>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                Searching for music... 🎵
+            </div>
+            
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;"></div>
+            
+            <div class="results" id="results">
+                <h2 id="resultsTitle"></h2>
+                <div class="video-list" id="videoList"></div>
+                
+                <div class="feedback-section" id="feedbackSection">
+                    <h3>How do you like these suggestions?</h3>
+                    <div class="feedback-buttons">
+                        <button class="feedback-btn like" onclick="submitFeedback('like')">👍 Like</button>
+                        <button class="feedback-btn" onclick="submitFeedback('skip')">⏭️ Skip</button>
+                        <button class="feedback-btn dislike" onclick="submitFeedback('dislike')">👎 Dislike</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentMoodDescription = null;
+        let currentQuery = null;
+        
+        // Allow Enter key to submit (Shift+Enter for new line)
+        document.getElementById('moodInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('searchBtn').click();
+            }
+        });
+        
+        document.getElementById('searchBtn').onclick = () => {
+            const moodDescription = document.getElementById('moodInput').value.trim();
+            
+            if (!moodDescription) {
+                document.getElementById('error').textContent = 'Please describe your mood';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+            
+            currentMoodDescription = moodDescription;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('feedbackSection').classList.remove('show');
+            
+            fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ mood_description: moodDescription })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error').style.display = 'block';
+                    return;
+                }
+                
+                currentQuery = data.query;
+                displayResults(data);
+            })
+            .catch(err => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Error: ' + err.message;
+                document.getElementById('error').style.display = 'block';
+            });
+        };
+        
+        function displayResults(data) {
+            let titleText = 'Music Suggestions';
+            if (data.interpretation) {
+                titleText = `Music for: ${data.interpretation}`;
+            } else if (data.mood_description) {
+                titleText = `Music for: ${data.mood_description}`;
+            }
+            
+            document.getElementById('resultsTitle').textContent = titleText;
+            
+            // Show interpretation if available
+            if (data.interpretation && data.interpretation !== data.mood_description) {
+                const interpretationDiv = document.createElement('div');
+                interpretationDiv.style.cssText = 'background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; color: #1976d2; font-style: italic;';
+                interpretationDiv.textContent = `💭 Interpreted as: ${data.interpretation}`;
+                document.getElementById('results').insertBefore(interpretationDiv, document.getElementById('videoList'));
+            }
+            
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = '';
+            
+            data.videos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'video-item';
+                item.id = `video-item-${index}`;
+                
+                // Extract video ID from URL
+                const videoId = video.video_id || video.url.split('v=')[1]?.split('&')[0];
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+                
+                item.innerHTML = `
+                    <div class="video-header">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-channel">${video.channel}</div>
+                    </div>
+                    <div class="video-embed">
+                        <iframe 
+                            src="${embedUrl}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="video-feedback">
+                        <h4>💭 How do you like this suggestion?</h4>
+                        <div class="video-feedback-buttons">
+                            <button class="video-feedback-btn like" onclick="submitVideoFeedback(${index}, 'like', '${videoId}', '${video.title.replace(/'/g, "\\'")}')" title="Like">
+                                👍
+                            </button>
+                            <button class="video-feedback-btn" onclick="submitVideoFeedback(${index}, 'neutral', '${videoId}', '${video.title.replace(/'/g, "\\'")}')" title="Neutral">
+                                ⚪
+                            </button>
+                            <button class="video-feedback-btn dislike" onclick="submitVideoFeedback(${index}, 'dislike', '${videoId}', '${video.title.replace(/'/g, "\\'")}')" title="Dislike">
+                                👎
+                            </button>
+                        </div>
+                    </div>
+                `;
+                videoList.appendChild(item);
+            });
+            
+            document.getElementById('results').classList.add('show');
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+        
+        function submitVideoFeedback(videoIndex, feedback, videoId, videoTitle) {
+            if (!currentMoodDescription || !currentQuery) return;
+            
+            // Disable all feedback buttons for this video
+            const videoItem = document.getElementById(`video-item-${videoIndex}`);
+            const feedbackButtons = videoItem.querySelectorAll('.video-feedback-btn');
+            feedbackButtons.forEach(btn => btn.disabled = true);
+            
+            // Highlight the selected button
+            const selectedBtn = videoItem.querySelector(`.video-feedback-btn:nth-child(${feedback === 'like' ? 1 : feedback === 'dislike' ? 3 : 2})`);
+            if (selectedBtn) {
+                if (feedback === 'like') {
+                    selectedBtn.classList.add('liked');
+                } else if (feedback === 'dislike') {
+                    selectedBtn.classList.add('disliked');
+                } else {
+                    selectedBtn.classList.add('neutral-selected');
+                }
+            }
+            
+            fetch('/api/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mood_description: currentMoodDescription,
+                    feedback: feedback,
+                    query: currentQuery,
+                    video_id: videoId,
+                    video_title: videoTitle,
+                    video_index: videoIndex
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message for this specific video
+                    const feedbackSection = videoItem.querySelector('.video-feedback');
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'color: #4caf50; font-size: 0.9em; margin-top: 10px; font-weight: 600;';
+                    successMsg.textContent = '✓ Feedback saved! Thank you for helping improve suggestions.';
+                    feedbackSection.appendChild(successMsg);
+                }
+            })
+            .catch(err => {
+                console.error('Feedback error:', err);
+                // Re-enable buttons on error
+                feedbackButtons.forEach(btn => btn.disabled = false);
+            });
+        }
+        
+        function submitFeedback(feedback) {
+            if (!currentMoodDescription || !currentQuery) return;
+            
+            fetch('/api/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mood_description: currentMoodDescription,
+                    feedback: feedback,
+                    query: currentQuery
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('success').textContent = 
+                        feedback === 'skip' ? 'Feedback skipped.' : 'Thank you! Your preference has been saved.';
+                    document.getElementById('success').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('success').style.display = 'none';
+                    }, 3000);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
