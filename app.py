@@ -11,12 +11,14 @@ import requests
 from typing import Dict, List, Optional
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from datetime import datetime
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 class MoodMusicApp:
     def __init__(self):
@@ -343,10 +345,21 @@ Example for "not happy, not sad, nor neutral":
                 'interpretation': mood_description
             }
     
-    def search_youtube(self, query: str, max_results: int = 5, mood_normalized: str = None) -> List[Dict]:
+    def search_youtube(self, query: str, max_results: int = 5, mood_normalized: str = None, genre: str = None, industry: str = None) -> List[Dict]:
         """Search YouTube for music videos"""
         if not self.api_key:
             return []
+        
+        # Add genre to query if specified
+        if genre and genre != 'any':
+            query = f"{query} {genre} music"
+        
+        # Add industry (Bollywood/Hollywood) to query if specified
+        if industry and industry != 'any':
+            if industry == 'bollywood':
+                query = f"{query} bollywood"
+            elif industry == 'hollywood':
+                query = f"{query} hollywood"
         
         url = "https://www.googleapis.com/youtube/v3/search"
         params = {
@@ -408,6 +421,8 @@ def search_music():
     """API endpoint to search for music based on mood description"""
     data = request.json
     mood_description = data.get('mood_description', '').strip()
+    genre = data.get('genre', 'any')  # Get genre preference
+    industry = data.get('industry', 'any')  # Get industry preference (Bollywood/Hollywood)
     
     if not mood_description:
         return jsonify({'error': 'Please describe your mood'}), 400
@@ -415,6 +430,8 @@ def search_music():
     # Record mood in history
     music_app.preferences['mood_history'].append({
         'mood': mood_description,
+        'genre': genre,
+        'industry': industry,
         'timestamp': datetime.now().isoformat()
     })
     
@@ -423,8 +440,8 @@ def search_music():
     search_query = mood_info['search_query']
     mood_normalized = mood_description.lower().strip()
     
-    # Search YouTube (filter out disliked videos)
-    videos = music_app.search_youtube(search_query, mood_normalized=mood_normalized)
+    # Search YouTube (filter out disliked videos, with genre and industry preference)
+    videos = music_app.search_youtube(search_query, mood_normalized=mood_normalized, genre=genre, industry=industry)
     
     if not videos:
         return jsonify({'error': 'No videos found. Please check your API key or try a different mood description.'}), 500
